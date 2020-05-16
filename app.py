@@ -55,6 +55,7 @@ class Venue(db.Model):
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
     genres = db.Column(db.String(120))
+    shows = db.relationship("Show", cascade="all, delete")
 
     def __repr__(self):
           return f"<Venue> id: {self.id}, name: {self.name}, city: {self.city}, state: {self.state}, address: {self.address}, phone: {self.phone}, genres: {self.genres}, facebook: {self.facebook_link}\n"
@@ -130,7 +131,8 @@ def search_venues():
 def show_venue(venue_id):
   venue = session.query(Venue).filter(Venue.id == venue_id).first_or_404()
   data = session.query(Artist, Show).join(Show, Show.venue_id == Artist.id).join(Venue, Show.venue_id == venue_id).all()
-
+  l = str(venue.genres)
+  # print(l.split)
   upcoming_shows=[]
   past_shows=[]
 
@@ -143,7 +145,7 @@ def show_venue(venue_id):
   data1={
   "id": venue_id,
   "name": venue.name,
-  "genres": venue.genres,
+  "genres":[venue.genres],
   "address":venue.address,
   "city": venue.city,
   "state": venue.state,
@@ -158,7 +160,7 @@ def show_venue(venue_id):
   "past_shows_count": len(past_shows),
   "upcoming_shows_count":len(upcoming_shows),
   }
-
+  
   return render_template('pages/show_venue.html', venue = data1)
 
 #  Create Venue
@@ -176,31 +178,36 @@ def create_venue_submission():
   state = request.form.get('state')
   address = request.form.get('address')
   phone = request.form.get('phone')
-  genres = request.form['genres']
+  genres = request.form.getlist('genres')
   facebook_link = request.form.get('facebook_link')
-  venue = Venue(name=name, city=city, state=state, address=address,
+  try:
+    venue = Venue(name=name, city=city, state=state, address=address,
                 phone=phone, genres=genres, facebook_link=facebook_link)
-  db.session.add(venue)
-  db.session.commit()
-
-  # on successful db insert, flash success
-  if(type(venue) == Venue):
+    session_.add(venue)
+    session_.commit()
     flash('Venue ' + request.form['name'] + ' was successfully listed!')
-  else:
+  except:
+    session_.rollback()
     flash('An error occurred. Venue ' + name + ' could not be listed.')
 
-
-  # TODO: on unsuccessful db insert, flash an error instead.
-  # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
+  finally:
+    session_.close()
   return render_template('pages/home.html')
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
-
 def delete_venue(venue_id):
-  print(venue_id)
-  venue = session.query(Venue).filter_by(id=venue_id).venue.delete()
-  session_.commit()
-  return redirect(url_for('index'))
+  try:
+    venue = Venue.query.get(venue_id)
+    db.session.delete(venue)
+    db.session.commit()
+    flash('The Venue has been successfully deleted!')
+    return render_template('pages/home.html')
+  except:
+    db.session.rollback()
+    flash('Delete was unsuccessful. Try again!')
+  finally:
+      db.session.close()
+  return None
 
 #  Artists
 #  ----------------------------------------------------------------
@@ -333,23 +340,19 @@ def create_artist_submission():
   city = request.form.get('city')
   state = request.form.get('state')
   phone = request.form.get('phone')
-  genres = myForm['genres']
+  genres = request.form.getlist('geners')
   facebook_link = request.form.get('facebook_link')
-  artist = Artist(name = name, city = city, state = state, phone = phone, genres=genres, facebook_link= facebook_link)
-  db.session.add(artist)
-  db.session.commit()
-  # called upon submitting the new artist listing form
-  # TODO: insert form data as a new Venue record in the db, instead
-  # TODO: modify data to be the data object returned from db insertion
-  if(type(artist) == Artist):
+  try: 
+    artist = Artist(name = name, city = city, state = state, phone = phone, genres=genres, facebook_link= facebook_link)
+    session_.add(artist)
+    session_.commit()
     flash('Artist ' + request.form['name'] + ' was successfully listed!')
-  else: 
+  except:
+    session_.rollback()
     flash('An error occurred. Artist ' + name + ' could not be listed.')
-
-  # on successful db insert, flash success
-  # TODO: on unsuccessful db insert, flash an error instead.
+  finally:
+    session_.close()
   return render_template('pages/home.html')
-
 
 #  Shows
 #  ----------------------------------------------------------------
