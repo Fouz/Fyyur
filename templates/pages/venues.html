@@ -2,18 +2,67 @@
 {% block title %}Fyyur | Venues{% endblock %}
 {% block content %}
 {% for area in areas %}
-<h3>{{ area.city }}, {{ area.state }}</h3>
+<h3>{{ area|capitalize }}</h3>
 	<ul class="items">
-		{% for venue in area.venues %}
+		{% for venue in venues %}
 		<li>
+			{% if venue.city|lower in area %}
 			<a href="/venues/{{ venue.id }}">
 				<i class="fas fa-music"></i>
 				<div class="item">
 					<h5>{{ venue.name }}</h5>
 				</div>
 			</a>
+			{% endif %}
 		</li>
 		{% endfor %}
 	</ul>
 {% endfor %}
 {% endblock %}
+<script type="text/javascript">
+
+
+		// document.getElementById("searchterm").addEventListener('keypress', function (e) {
+		// 	if (e.keyCode == 13) {
+
+		// 		e.preventDefault();
+
+		// 		fetch('/venues/search', {
+		// 			method: 'POST',
+		// 			body: JSON.stringify({ 'searchterm': document.getElementById('searchterm').value }),
+		// 			headers: {
+		// 				'Content-Type': 'application/json'
+		// 			}
+		// 		})
+		// 			.then(function (res) {
+		// 				return res.json();
+		// 			})
+		// 			.then(function (jsonResponse) {
+		// 				console.log("ll");
+		// 				console.log(jsonResponse);
+		// 			});
+
+		// 	}
+		// })
+
+		document.getElementById("form").onsubmit= function(e){
+
+            e.preventDefault();
+
+            fetch('/venues/search',{
+                method: 'POST',
+                body: JSON.stringify({'searchterm' : document.getElementById('searchterm').value}),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(function(res){
+                return res.json();
+            })
+            .then(function(jsonResponse){
+                // Manipulate DOM :)
+
+                });
+
+        }
+</script>
