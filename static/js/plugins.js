@@ -1,4 +1,26 @@
+myFunction();
+myFunction2();
+var text2 = document.getElementById("seeking_venue_description");
+text2.style.display = "none";
 
+function myFunction() {
+  var checkBox = document.getElementById("seeking_talent_");
+  var text = document.getElementById("seeking_talent_description");
+  if (checkBox.checked == true){
+    text.style.display = "block";
+  } else {
+    text.style.display = "none";
+  }
+}
+function myFunction2() {
+  var checkBox2 = document.getElementById("seeking_venue_");
+  var text2 = document.getElementById("seeking_venue_description");
+  if (checkBox2.checked == true) {
+    text2.style.display = "block";
+  } else {
+    text2.style.display = "none";
+  }
+}
 // usage: log('inside coolFunc', this, arguments);
 // paulirish.com/2009/log-a-lightweight-wrapper-for-consolelog/
 window.log = function(){
@@ -16,5 +38,4 @@ window.log = function(){
 {console.log();return window.console;}catch(err){return window.console={};}})());
 
 
-// place any jQuery/helper plugins in here, instead of separate, slower script files.
 

@@ -54,6 +54,11 @@ class Venue(db.Model):
     phone = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
+
+    website_link = db.Column(db.String(120))
+    seeking_talent = db.Column(db.Boolean)
+    seeking_description = db.Column(db.String)
+
     genres = db.Column(db.String(120))
     shows = db.relationship("Show", cascade="all, delete")
 
@@ -68,7 +73,12 @@ class Artist(db.Model):
     state = db.Column(db.String(120))
     phone = db.Column(db.String(120))
     genres = db.Column(db.String(120))
+
     image_link = db.Column(db.String(500))
+    website_link = db.Column(db.String(120))
+    seeking_venue = db.Column(db.Boolean)
+    seeking_description = db.Column(db.String)
+
     facebook_link = db.Column(db.String(120))
     def __repr__(self):
           return f"<Artist> id:{self.id}, name: {self.name}, city: {self.city}, state: {self.state}, phone: {self.phone}, genres: {self.genres}, facebook: {self.facebook_link}\n"
@@ -112,11 +122,9 @@ def venues():
   venues = session.query(Venue).all()
   cityStates = db.session.query(Venue.city, Venue.state).distinct().all()
   data = []
-
   for c in cityStates:
     if ", ".join(c).lower() not in data:
       data.append(", ".join(c).lower())
-
   return render_template('pages/venues.html', venues=venues, areas=data)
 
 @app.route('/venues/search', methods=['POST'])
@@ -150,11 +158,11 @@ def show_venue(venue_id):
   "city": venue.city,
   "state": venue.state,
   "phone": venue.phone,
-  "website": "https://www.themusicalhop.com",
+  "website_link": venue.website_link,
   "facebook_link": venue.facebook_link,
-  "seeking_talent": True,
-  "seeking_description": "We are on the lookout for a local artist to play every two weeks. Please call us.",
-  "image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60",
+  "seeking_talent": venue.seeking_talent,
+  "seeking_description": venue.seeking_description,
+  "image_link": venue.image_link,
   "past_shows": past_shows, 
   "upcoming_shows": upcoming_shows,
   "past_shows_count": len(past_shows),
@@ -180,16 +188,25 @@ def create_venue_submission():
   phone = request.form.get('phone')
   genres = request.form.getlist('genres')
   facebook_link = request.form.get('facebook_link')
+
+  seeking_description = request.form.get('seeking_description')
+
+  if 'seeking_talent' not in request.form:
+    seeking_talent = False
+  else:
+    seeking_talent =True
+  website_link = request.form.get('website_link')
+  image_link = request.form.get('image_link')
+
   try:
-    venue = Venue(name=name, city=city, state=state, address=address,
-                phone=phone, genres=genres, facebook_link=facebook_link)
+    venue = Venue(image_link=image_link,name=name, city=city, state=state, address=address,
+                phone=phone, genres=genres, facebook_link=facebook_link, seeking_description= seeking_description,seeking_talent=seeking_talent, website_link=website_link )
     session_.add(venue)
     session_.commit()
     flash('Venue ' + request.form['name'] + ' was successfully listed!')
   except:
     session_.rollback()
     flash('An error occurred. Venue ' + name + ' could not be listed.')
-
   finally:
     session_.close()
   return render_template('pages/home.html')
@@ -245,11 +262,11 @@ def show_artist(artist_id):
   "city": artist.city,
   "state": artist.state,
   "phone": artist.phone,
-  "website": "https://www.themusicalhop.com",
+  "website": artist.website_link,
   "facebook_link": artist.facebook_link,
-  "seeking_talent": True,
-  "seeking_description": "We are on the lookout for a local artist to play every two weeks. Please call us.",
-  "image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60",
+  "seeking_venue": artist.seeking_venue,
+  "seeking_description": artist.seeking_description,
+  "image_link": artist.image_link,
   "past_shows": past_shows, 
   "upcoming_shows": upcoming_shows,
   "past_shows_count": len(past_shows),
@@ -342,8 +359,17 @@ def create_artist_submission():
   phone = request.form.get('phone')
   genres = request.form.getlist('geners')
   facebook_link = request.form.get('facebook_link')
+
+  website_link = request.form.get('website_link')
+  image_link = request.form.get('image_link')
+  seeking_description = request.form.get('seeking_description')
+  if 'seeking_venue' not in request.form:
+    seeking_venue = False
+  else:
+    seeking_venue =True
+
   try: 
-    artist = Artist(name = name, city = city, state = state, phone = phone, genres=genres, facebook_link= facebook_link)
+    artist = Artist(seeking_description=seeking_description,seeking_venue=seeking_venue, name = name, city = city, state = state, phone = phone, genres=genres, facebook_link= facebook_link, website_link=website_link,image_link=image_link )
     session_.add(artist)
     session_.commit()
     flash('Artist ' + request.form['name'] + ' was successfully listed!')
