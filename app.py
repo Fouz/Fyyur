@@ -2,7 +2,7 @@
 # Imports
 #----------------------------------------------------------------------------#
 
-import json
+# import json
 import datetime
 import dateutil.parser
 from flask_migrate import Migrate
@@ -145,9 +145,7 @@ def get_genres(set_genres):
     
 # SHOW VENUE:-----------------
 @app.route('/venues/<int:venue_id>')
-def show_venue(venue_id):
-  
-        
+def show_venue(venue_id):  
   venue = session.query(Venue).filter(Venue.id == venue_id).first_or_404()
   data = session.query(Artist, Show).join(Artist, Show.artist_id == Artist.id).join(Venue, Show.venue_id == venue_id).all()
   upcoming_shows=[]
@@ -207,8 +205,6 @@ def create_venue_submission():
     seeking_talent =True
   website_link = request.form.get('website_link')
   image_link = request.form.get('image_link')
-  if not form.validate():
-      flash( form.errors )
   return redirect(url_for('create_artist_form'))
 
   try:
@@ -291,20 +287,28 @@ def show_artist(artist_id):
 #  ----------------------------------------------------------------
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
-  form = ArtistForm()
   artist = session.query(Artist).filter_by(id=artist_id).first_or_404()
+  form = ArtistForm(artist=artist)
   return render_template('forms/edit_artist.html', form=form, artist=artist)
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
   artist = Artist.query.get(artist_id)
-
+  form = ArtistForm(artist=artist)
   name = request.form.get('name')
   city = request.form.get('city')
   state = request.form.get('state')
   phone = request.form.get('phone')
-  genres = request.form['genres']
+  genres = request.form.getlist('genres')
   facebook_link = request.form.get('facebook_link')
+  facebook_link = request.form.get('facebook_link')
+  website_link = request.form.get('website_link')
+  image_link = request.form.get('image_link')
+  seeking_description = request.form.get('seeking_description') 
+  if 'seeking_venue' not in request.form:
+        seeking_venue = False
+  else:
+        seeking_venue =True
   try:
     artist.name = name
     artist.city = city
@@ -312,9 +316,15 @@ def edit_artist_submission(artist_id):
     artist.phone = phone
     artist.genres = genres
     artist.facebook_link = facebook_link
+    artist.website_link = website_link
+    artist.image_link = image_link
+    artist.seeking_description=seeking_description
+    artist.seeking_venue = seeking_venue
     session.commit()
+    print(":(")
   except:
     session_.rollback()
+    print(":)")
   finally:
     session_.close()
 
@@ -322,21 +332,28 @@ def edit_artist_submission(artist_id):
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
-  form = VenueForm()
   venue = Venue.query.filter_by(id=venue_id).first_or_404()
+  form = VenueForm(venue=venue)
   return render_template('forms/edit_venue.html', form=form, venue=venue)
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
   venue = Venue.query.get(venue_id)
-
+  form = VenueForm(venue=venue)
   name = request.form.get('name')
   city = request.form.get('city')
   state = request.form.get('state')
   address = request.form.get('address')
   phone = request.form.get('phone')
-  genres = request.form['genres']
+  genres = request.form.getlist("genres")
   facebook_link = request.form.get('facebook_link')
+  image_link = request.form.get('image_link')
+  website_link = request.form.get('website_link')
+  seeking_description = request.form.get('seeking_description')
+  if 'seeking_talent' not in request.form:
+    seeking_talent = False
+  else:
+    seeking_talent=True
   try:
     venue.name = name
     venue.city = city
@@ -345,6 +362,10 @@ def edit_venue_submission(venue_id):
     venue.phone = phone
     venue.genres = genres
     venue.facebook_link = facebook_link
+    venue.image_link = image_link
+    venue.website_link = website_link
+    venue.seeking_description=seeking_description
+    venue.seeking_talent=seeking_talent
     session.commit()
   except:
     session_.rollback()
@@ -375,11 +396,13 @@ def create_artist_submission():
 
   website_link = request.form.get('website_link')
   image_link = request.form.get('image_link')
-  seeking_description = request.form.get('seeking_description')
+
   if 'seeking_venue' not in request.form:
     seeking_venue = False
+    seeking_description=""
   else:
     seeking_venue =True
+    seeking_description = request.form.get('seeking_description')
 
   try: 
     artist = Artist(seeking_description=seeking_description,seeking_venue=seeking_venue, name = name, city = city, state = state, phone = phone, genres=genres, facebook_link= facebook_link, website_link=website_link,image_link=image_link )
