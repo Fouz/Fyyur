@@ -5,7 +5,7 @@
     {%for show in data %}
     <div class="col-sm-4">
         <div class="tile tile-show">
-            <img src="{{ show.artist_image_link }}" alt="Artist Image" />
+            <img src="{{ show.Artist.image_link }}" alt="Artist Image" />
             <h4>{{ show.Show.start_time|datetime('full') }}</h4>
             <h5><a href="/artists/{{show.Artist.id}}">{{ show.Artist.name }}</a></h5>
             <p>playing at</p>

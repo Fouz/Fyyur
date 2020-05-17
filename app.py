@@ -133,27 +133,36 @@ def search_venues():
   query = session.query(Venue).filter(func.lower(Venue.name).contains(func.lower(literal(searchterm)))).all()
   query_count = len(query)
   return render_template('pages/search_venues.html', results=query,query_count = query_count, search_term=searchterm)
-
+def get_genres(set_genres):
+  s = str(set_genres)
+  s = s.replace(s[0],'')
+  s = s.replace(s[-1],'')
+  s= s.split(",")
+  ss = []
+  for i in s:
+    ss.append(i.strip())
+  return ss
+    
 # SHOW VENUE:-----------------
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
+  
+        
   venue = session.query(Venue).filter(Venue.id == venue_id).first_or_404()
-  data = session.query(Artist, Show).join(Show, Show.venue_id == Artist.id).join(Venue, Show.venue_id == venue_id).all()
-  l = str(venue.genres)
-  # print(l.split)
+  data = session.query(Artist, Show).join(Artist, Show.artist_id == Artist.id).join(Venue, Show.venue_id == venue_id).all()
   upcoming_shows=[]
   past_shows=[]
 
   for d in data:
     if (datetime.strptime(d.Show.start_time, "%Y-%m-%d %H:%M:%S") > now):
-      upcoming_shows.append(d)
+          upcoming_shows.append(d)
     elif(datetime.strptime(d.Show.start_time, "%Y-%m-%d %H:%M:%S") < now):
       past_shows.append(d)
 
   data1={
   "id": venue_id,
   "name": venue.name,
-  "genres":[venue.genres],
+  "genres":get_genres(venue.genres),
   "address":venue.address,
   "city": venue.city,
   "state": venue.state,
@@ -168,7 +177,7 @@ def show_venue(venue_id):
   "past_shows_count": len(past_shows),
   "upcoming_shows_count":len(upcoming_shows),
   }
-  
+
   return render_template('pages/show_venue.html', venue = data1)
 
 #  Create Venue
@@ -188,6 +197,7 @@ def create_venue_submission():
   phone = request.form.get('phone')
   genres = request.form.getlist('genres')
   facebook_link = request.form.get('facebook_link')
+  form = VenueForm()
 
   seeking_description = request.form.get('seeking_description')
 
@@ -197,6 +207,9 @@ def create_venue_submission():
     seeking_talent =True
   website_link = request.form.get('website_link')
   image_link = request.form.get('image_link')
+  if not form.validate():
+      flash( form.errors )
+  return redirect(url_for('create_artist_form'))
 
   try:
     venue = Venue(image_link=image_link,name=name, city=city, state=state, address=address,
@@ -232,7 +245,6 @@ def delete_venue(venue_id):
 def artists():
   artists = session.query(Artist).all()
   return render_template('pages/artists.html', artists=artists)
-
 @app.route('/artists/search', methods=['POST'])
 
 def search_artists():
@@ -244,7 +256,8 @@ def search_artists():
 @app.route('/artists/<int:artist_id>')
 def show_artist(artist_id):
   artist = session.query(Artist).filter(Artist.id == artist_id).first_or_404()
-  data = session.query(Venue, Show).join(Show, Show.artist_id == Venue.id).join(Artist, Show.artist_id == artist_id).all()
+  # data = session.query(Artist, Show).join(Artist, Show.artist_id == Artist.id).join(Venue, Show.venue_id == venue_id).all()
+  data = session.query(Venue, Show).join(Venue, Show.venue_id == Venue.id).join(Artist, Show.artist_id == artist_id).all()
 
   upcoming_shows=[]
   past_shows=[]
@@ -258,7 +271,7 @@ def show_artist(artist_id):
   data1={
   "id": artist_id,
   "name": artist.name,
-  "genres": artist.genres,
+  "genres": get_genres(artist.genres),
   "city": artist.city,
   "state": artist.state,
   "phone": artist.phone,
