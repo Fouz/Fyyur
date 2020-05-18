@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask_wtf import Form
 from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField, BooleanField 
-from wtforms.validators import DataRequired, AnyOf, URL, ValidationError, Regexp, Length
+from wtforms.validators import DataRequired, AnyOf, URL, ValidationError, Regexp, Length, NumberRange
 import re
 
 state_choices = [
@@ -80,20 +80,16 @@ genres_choices = [
 ]
 class ShowForm(Form):
     artist_id = StringField(
-        'artist_id'
+        'artist_id', validators=[DataRequired(), NumberRange()],
     )
     venue_id = StringField(
-        'venue_id'
+        'venue_id', validators=[DataRequired(), NumberRange()],
     )
     start_time = DateTimeField(
         'start_time',
         validators=[DataRequired()],
         default= datetime.today()
     )
-
-# def isValidPhone(form, field):
-#     if not re.search(r"^[0-9]{3}-[0-9]{3}-[0-9]{4}$", field) or field > 10 or field < 10:
-#         raise ValidationError("Invalid phone number.")
 
 class VenueForm(Form):
     def validate_phone(self,form, field):

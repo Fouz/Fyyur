@@ -27,11 +27,11 @@ now = datetime.now()
 app = Flask(__name__)
 moment = Moment(app)
 app.config.from_object('config')
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:Thinker1997@localhost:5432/fyyurdb"
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:Thinker1997@localhost:5432/fyyur2"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
-engine = create_engine('postgresql://postgres:Thinker1997@localhost:5432/fyyurdb')
+engine = create_engine('postgresql://postgres:Thinker1997@localhost:5432/fyyur2')
 Session = sessionmaker(bind=engine)
 session_ = Session()
 session = db.session
@@ -188,14 +188,14 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-  name = request.form.get('name')
-  city = request.form.get('city')
-  state = request.form.get('state')
-  address = request.form.get('address')
-  phone = request.form.get('phone')
-  genres = request.form.getlist('genres')
-  facebook_link = request.form.get('facebook_link')
-  form = VenueForm()
+  # name = request.form.get('name')
+  # city = request.form.get('city')
+  # state = request.form.get('state')
+  # address = request.form.get('address')
+  # phone = request.form.get('phone')
+  # genres = request.form.getlist('genres')
+  # facebook_link = request.form.get('facebook_link')
+  # form = VenueForm()
 
   seeking_description = request.form.get('seeking_description')
 
@@ -203,19 +203,18 @@ def create_venue_submission():
     seeking_talent = False
   else:
     seeking_talent =True
-  website_link = request.form.get('website_link')
-  image_link = request.form.get('image_link')
-  return redirect(url_for('create_artist_form'))
+  # website_link = request.form.get('website_link')
+  # image_link = request.form.get('image_link')
 
   try:
-    venue = Venue(image_link=image_link,name=name, city=city, state=state, address=address,
-                phone=phone, genres=genres, facebook_link=facebook_link, seeking_description= seeking_description,seeking_talent=seeking_talent, website_link=website_link )
+    venue = Venue(image_link=request.form.get('image_link'),name=request.form.get('name'), city=request.form.get('city'), state=request.form.get('state'), address=request.form.get('address'),
+                phone=request.form.get('phone'), genres=request.form.getlist('genres'), facebook_link=request.form.get('facebook_link'), seeking_description= request.form.get('seeking_description'),seeking_talent=seeking_talent, website_link=request.form.get('website_link') )
     session_.add(venue)
     session_.commit()
     flash('Venue ' + request.form['name'] + ' was successfully listed!')
   except:
     session_.rollback()
-    flash('An error occurred. Venue ' + name + ' could not be listed.')
+    flash('An error occurred. Venue ' + request.form.get('name') + ' could not be listed.')
   finally:
     session_.close()
   return render_template('pages/home.html')
